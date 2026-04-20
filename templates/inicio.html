@@ -1,0 +1,501 @@
+{% load static %}
+
+{% block title %}HOPE | Todo lo que sientes importa{% endblock %}
+
+{% block content %}
+
+<link rel="icon" href="{% static 'img/favicon.ico' %}" type="image/x-icon">
+<link rel="shortcut icon" href="{% static 'img/favicon.ico' %}" type="image/x-icon">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700;900&family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+    :root {
+        --c-purple: #5A3FA3;
+        --c-pink: #F85B8C;
+        --c-orange: #F27C21;
+        --c-yellow: #F8D33D;
+        --c-teal: #25B8B8;
+        --c-dark: #0f0f0f;
+        
+        --sidebar-width: 280px;
+        --font-display: 'Outfit', sans-serif;
+        --font-body: 'Plus Jakarta Sans', sans-serif;
+        
+        --soft-shadow: 0 10px 25px rgba(0,0,0,0.05);
+        --soft-shadow-hover: 0 15px 35px rgba(0,0,0,0.1);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { 
+        scroll-behavior: smooth; 
+        width: 100%; 
+        height: 100%; 
+        margin: 0 !important; 
+        padding: 0 !important; 
+    }
+    
+    body { 
+        font-family: var(--font-body); 
+        background-color: #ffffff; 
+        color: var(--c-dark);
+        overflow-x: hidden; 
+    }
+
+    /* ===== BOTÓN MÓVIL (HAMBURGUESA) ===== */
+    .mobile-nav-toggle {
+        display: none;
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 3000;
+        background: var(--c-purple);
+        color: white;
+        border: none;
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        font-size: 1.5rem;
+        cursor: pointer;
+        box-shadow: var(--soft-shadow);
+    }
+
+    /* Capa oscura cuando el menú está abierto en móvil */
+    .sidebar-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 1999;
+        backdrop-filter: blur(3px);
+    }
+
+    /* ===== SIDEBAR ===== */
+    .sidebar-navigation {
+        width: var(--sidebar-width); 
+        height: 100vh; 
+        background: #ffffff;
+        position: fixed; 
+        top: 0; left: 0; 
+        z-index: 2000; 
+        display: flex; 
+        flex-direction: column; 
+        padding: 50px 25px;
+        border-right: 1px solid #f0f0f0; 
+        overflow-y: auto;
+        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .sidebar-navigation::-webkit-scrollbar { width: 5px; }
+    .sidebar-navigation::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 10px; }
+    
+    .brand-container { margin-bottom: 40px; text-align: center; }
+    .brand-container img { width: 155px !important; height: auto; object-fit: contain; }
+
+    .nav-section-title {
+        font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px;
+        color: #aaa; font-weight: 800; margin: 15px 0 5px 10px;
+    }
+
+    .nav-menu-item {
+        display: flex; align-items: center; padding: 12px 15px;
+        color: var(--c-dark); font-weight: 700; font-size: 0.95rem;
+        text-decoration: none; transition: all 0.3s ease; 
+        border-radius: 12px; margin-bottom: 5px; border: none;
+    }
+    .nav-menu-item i { font-size: 1.1rem; width: 30px; transition: 0.3s; color: var(--c-purple); text-align: center; margin-right: 5px;}
+    
+    .nav-menu-item:hover, .nav-menu-item.active { 
+        background: #f8f8f8; 
+        color: var(--c-purple);
+        transform: translateX(5px);
+    }
+    .nav-menu-item:hover i, .nav-menu-item.active i { color: var(--c-pink); }
+
+    /* ===== MAIN STAGE ===== */
+    .main-stage { 
+        margin-left: var(--sidebar-width); 
+        width: calc(100% - var(--sidebar-width)); 
+        min-height: 100vh; 
+    }
+
+    /* BOTONES */
+    .btn-brutal {
+        padding: 18px 35px; border-radius: 50px; font-weight: 800; font-size: 1.05rem;
+        font-family: var(--font-display); text-transform: uppercase; letter-spacing: 1px; 
+        display: inline-flex; align-items: center; gap: 12px; transition: 0.3s; cursor: pointer;
+        background: var(--c-orange); color: white; 
+        border: none; box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    }
+    .btn-brutal:hover { 
+        transform: translateY(-4px); 
+        box-shadow: 0 12px 25px rgba(0,0,0,0.15);
+        filter: brightness(1.05);
+    }
+
+    /* --- HERO --- */
+    .hero-slider {
+        position: relative; width: 100%; height: 100vh; overflow: hidden; background: #ffffff;
+    }
+    .slide {
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        opacity: 0; transition: opacity 1s ease-in-out;
+        display: flex; align-items: center; justify-content: center; padding: 0 5vw;
+        background-color: #ffffff;
+    }
+    .slide.active { opacity: 1; z-index: 10; }
+
+    .hero-text-box { 
+        position: relative; z-index: 2; text-align: center; max-width: 1100px; margin: 0 auto;
+    }
+    .hero-text-box h1 {
+        font-family: var(--font-display); font-size: clamp(3rem, 8vw, 8rem); 
+        font-weight: 900; line-height: 0.95; margin-bottom: 25px; 
+        letter-spacing: -0.03em; color: var(--c-dark); text-transform: uppercase;
+    }
+    .hero-text-box p { 
+        font-size: clamp(1rem, 2vw, 1.4rem); color: #555; 
+        background: transparent; padding: 10px 20px; display: inline-block;
+        font-weight: 500; margin-bottom: 40px; line-height: 1.5;
+    }
+
+    .slider-controls {
+        position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%);
+        z-index: 20; display: flex; gap: 12px;
+    }
+    .dot {
+        width: 14px; height: 14px; border-radius: 50%; border: none;
+        background: #e0e0e0; cursor: pointer; transition: 0.3s;
+    }
+    .dot.active { background: var(--c-purple); transform: scale(1.3); }
+
+    /* --- ILUSTRACIÓN --- */
+    .section-illustration {
+        background-color: #ffffff; padding: 100px 6vw; display: grid;
+        grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; 
+    }
+    .art-container { padding: 20px; text-align: center; }
+    .art-container img { width: 100%; max-width: 450px; height: auto; border-radius: 20px; }
+    
+    .art-text h2 {
+        font-family: var(--font-display); font-size: clamp(2rem, 4vw, 4rem); 
+        color: var(--c-dark); line-height: 1; margin-bottom: 25px;
+    }
+    .art-text p { font-size: 1.1rem; color: #666; margin-bottom: 35px; line-height: 1.7;}
+
+    /* --- GRIDS (SERVICIOS Y BLOG) --- */
+    .section-servicios, .section-blog { padding: 80px 6vw; }
+    .section-servicios { background-color: #fcfcfd; }
+    .section-title {
+        font-family: var(--font-display); font-size: clamp(2.5rem, 5vw, 5rem); 
+        font-weight: 900; color: var(--c-purple); margin-bottom: 60px;
+    }
+
+    .services-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 30px;
+        width: 100%;
+    }
+    
+    .service-card {
+        background: #ffffff; border-radius: 24px; overflow: hidden;
+        box-shadow: var(--soft-shadow); transition: all 0.4s ease;
+        display: flex; flex-direction: column; height: 100%;
+    }
+    .service-card:hover { transform: translateY(-8px); box-shadow: var(--soft-shadow-hover); }
+    .service-img-container { width: 100%; height: 220px; background-color: #f0f0f0; overflow: hidden; }
+    .service-img-container img { width: 100%; height: 100%; object-fit: cover; }
+
+    .service-info { padding: 25px; flex-grow: 1; }
+    .service-info h3 { font-family: var(--font-display); font-size: 1.5rem; margin-bottom: 12px; font-weight: 800; }
+    .service-info p { color: #666; font-size: 1rem; line-height: 1.6; }
+
+    /* --- DONACIONES --- */
+    .section-pink { background-color: #ffffff; text-align: center; padding: 100px 6vw; }
+    .section-pink h2 { font-family: var(--font-display); font-size: clamp(2.2rem, 5vw, 4.5rem); color: var(--c-pink); margin-bottom: 20px; }
+    .slider-elite { -webkit-appearance: none; width: 100%; max-width: 600px; height: 8px; border-radius: 10px; background: #eef0f2; margin: 40px auto; display: block; }
+    .slider-elite::-webkit-slider-thumb { -webkit-appearance: none; width: 30px; height: 30px; border-radius: 50%; background: var(--c-pink); cursor: pointer; }
+    .monto-display { font-size: clamp(3.5rem, 8vw, 7rem); color: var(--c-purple); font-weight: 900; font-family: var(--font-display); }
+
+    /* ===== MEDIA QUERIES (AJUSTES MÓVILES) ===== */
+    @media (max-width: 1100px) {
+        .section-illustration { grid-template-columns: 1fr; text-align: center; gap: 40px; }
+    }
+
+    @media (max-width: 900px) {
+        .mobile-nav-toggle { display: block; } /* Mostramos botón */
+        
+        .sidebar-navigation {
+            transform: translateX(-100%); /* Escondemos sidebar */
+            box-shadow: 10px 0 30px rgba(0,0,0,0.1);
+        }
+        
+        .sidebar-active .sidebar-navigation {
+            transform: translateX(0); /* Mostramos sidebar al activar */
+        }
+        
+        .sidebar-active .sidebar-overlay {
+            display: block; /* Mostramos capa oscura */
+        }
+
+        .main-stage { 
+            margin-left: 0; 
+            width: 100%; 
+        }
+
+        .hero-text-box h1 { font-size: 3.5rem; }
+        .monto-display { font-size: 4rem; }
+    }
+
+    @media (max-width: 480px) {
+        .hero-text-box h1 { font-size: 2.8rem; }
+        .section-title { font-size: 2.2rem; }
+        .btn-brutal { width: 100%; justify-content: center; }
+        .services-grid { grid-template-columns: 1fr; }
+    }
+</style>
+
+<button class="mobile-nav-toggle" id="menuBtn">
+    <i class="fas fa-bars"></i>
+</button>
+
+<div class="sidebar-overlay" id="overlay"></div>
+
+<nav class="sidebar-navigation">
+    <div class="brand-container">
+        <img src="{% static 'img/nlogo.png' %}" alt="HOPE Logo">
+    </div>
+    
+    <a href="#inicio" class="nav-menu-item active"><i class="fas fa-home"></i> Inicio</a>
+    
+    <p class="nav-section-title">Nuestros Servicios</p>
+    <a href="{% url 'modulo_informativo' %}" class="nav-menu-item"><i class="fas fa-user"></i> Terapia Individual</a>
+    <a href="{% url 'modulo_informativo' %}" class="nav-menu-item"><i class="fas fa-users"></i> Terapia Grupal</a>
+    <a href="{% url 'modulo_informativo' %}" class="nav-menu-item"><i class="fas fa-child"></i> Talleres Padres y Madres</a>
+    <a href="{% url 'modulo_informativo' %}" class="nav-menu-item"><i class="fas fa-chalkboard-teacher"></i> Talleres Generales</a>
+    <a href="{% url 'modulo_informativo' %}" class="nav-menu-item"><i class="fas fa-leaf"></i> Eco-visión</a>
+    
+    <p class="nav-section-title">Comunidad</p>
+    <a href="#legado" class="nav-menu-item"><i class="fas fa-heart"></i> Legado</a>
+    <a href="#blog" class="nav-menu-item"><i class="fas fa-book-open"></i> Blog</a>
+</nav>
+
+<main class="main-stage">
+    
+    <section id="inicio" class="hero-slider">
+        <div class="slide slide-1 active">
+            <div class="hero-text-box">
+                <h1>TODO LO QUE<br><span style="color: var(--c-pink);">SIENTES</span><br>IMPORTA.</h1>
+                <p>Tu paz mental no es un lujo, es el principio de todo.</p>
+                <div style="margin-top: 20px;">
+                    <button class="btn-brutal" style="background: var(--c-purple);" onclick="location.href='{% url 'modulo_informativo' %}'">Inicia tu Proceso <i class="fas fa-arrow-right"></i></button>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide slide-2">
+            <div class="hero-text-box">
+                <h1>TODO LO QUE<br><span style="color: var(--c-yellow);">PIENSAS</span><br>IMPORTA.</h1>
+                <p>No tienes que resolverlo en silencio.</p>
+                <div style="margin-top: 20px;">
+                    <button class="btn-brutal" style="background: var(--c-teal);" onclick="location.href='#servicios'">Ver Servicios <i class="fas fa-eye"></i></button>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide slide-3">
+            <div class="hero-text-box">
+                <h1>TODO LO QUE<br><span style="color: var(--c-teal);">DONAS</span><br>IMPORTA.</h1>
+                <p>Conviértete en el puente hacia la esperanza.</p>
+                <div style="margin-top: 20px;">
+                    <button class="btn-brutal" style="background: var(--c-pink);" onclick="location.href='#blog'">Conoce la Comunidad <i class="fas fa-users"></i></button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="slider-controls">
+            <div class="dot active" onclick="goToSlide(0)"></div>
+            <div class="dot" onclick="goToSlide(1)"></div>
+            <div class="dot" onclick="goToSlide(2)"></div>
+        </div>
+    </section>
+
+    <section class="section-illustration">
+        <div class="art-container">
+            <img src="https://images.unsplash.com/photo-1492269815085-88eb3ffe14e5?q=80&w=869&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Ilustración">
+        </div>
+        <div class="art-text">
+            <h2>Escuela para Padres.</h2>
+            <p>Construyendo arquitecturas familiares inquebrantables. Herramientas reales para la crianza consciente.</p>
+            <button class="btn-brutal" style="background: var(--c-purple);">Unirme al Círculo</button>
+        </div>
+    </section>
+
+<section id="servicios" class="section-servicios">
+        <h2 class="section-title">Nuestros <br>Servicios.</h2>
+        
+        <div class="services-grid">
+            <div class="service-card" onclick="location.href='{% url 'modulo_informativo' %}'">
+                <div class="service-img-container">
+                    <img src="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?auto=format&fit=crop&w=800" alt="Terapia Individual">
+                </div>
+                <div class="service-info">
+                    <h3 style="color: var(--c-teal);">Terapia Individual</h3>
+                    <p>Atención uno a uno enfocada en tu crecimiento y sanación personal.</p>
+                </div>
+            </div>
+            
+            <div class="service-card" onclick="location.href='{% url 'modulo_informativo' %}'">
+                <div class="service-img-container">
+                    <img src="https://plus.unsplash.com/premium_photo-1664302446248-f06d384dad67?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Terapia Grupal">
+                </div>
+                <div class="service-info">
+                    <h3 style="color: var(--c-purple);">Terapia Grupal</h3>
+                    <p>Círculos de apoyo y contención emocional para sanar en comunidad.</p>
+                </div>
+            </div>
+            
+            <div class="service-card" onclick="location.href='{% url 'modulo_informativo' %}'">
+                <div class="service-img-container">
+                    <img src="https://images.unsplash.com/photo-1511895426328-dc8714191300?auto=format&fit=crop&w=800" alt="Talleres para Padres">
+                </div>
+                <div class="service-info">
+                    <h3 style="color: var(--c-pink);">Talleres Padres</h3>
+                    <p>Guía práctica para fortalecer la crianza y el vínculo con tus hijos.</p>
+                </div>
+            </div>
+            
+            <div class="service-card" onclick="location.href='{% url 'modulo_informativo' %}'">
+                <div class="service-img-container">
+                    <img src="https://images.unsplash.com/photo-1531498860502-7c67cf02f657?auto=format&fit=crop&w=800" alt="Talleres Generales">
+                </div>
+                <div class="service-info">
+                    <h3 style="color: var(--c-orange);">Talleres Generales</h3>
+                    <p>Desarrollo de habilidades emocionales para todas las etapas de la vida.</p>
+                </div>
+            </div>
+            
+            <div class="service-card" onclick="location.href='{% url 'modulo_informativo' %}'">
+                <div class="service-img-container">
+                    <img src="https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=800" alt="Eco-visión">
+                </div>
+                <div class="service-info">
+                    <h3 style="color: var(--c-yellow);">Eco-visión</h3>
+                    <p>Reconexión con la naturaleza como pilar de tu equilibrio mental.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="blog" class="section-blog">
+        <h2 class="section-title">Nuestro <br>Blog.</h2>
+        <div class="services-grid">
+            <div class="service-card">
+                <div class="service-img-container">
+                    <img src="https://images.unsplash.com/photo-1499209974431-9dddcece7f88?auto=format&fit=crop&w=800" alt="Articulo 1">
+                </div>
+                <div class="service-info">
+                    <p style="font-size: 0.85rem; color: var(--c-orange); font-weight: bold; margin-bottom: 5px;">SALUD MENTAL</p>
+                    <h3>El poder de hablar</h3>
+                    <p>Descubre cómo exteriorizar tus emociones alivia la carga diaria.</p>
+                </div>
+            </div>
+            
+            <div class="service-card">
+                <div class="service-img-container">
+                    <img src="https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=800" alt="Articulo 2">
+                </div>
+                <div class="service-info">
+                    <p style="font-size: 0.85rem; color: var(--c-teal); font-weight: bold; margin-bottom: 5px;">MINDFULNESS</p>
+                    <h3>Respiración Ansiedad</h3>
+                    <p>Ejercicios simples para recuperar tu centro en momentos de estrés.</p>
+                </div>
+            </div>
+
+            <div class="service-card">
+                <div class="service-img-container">
+                    <img src="https://images.unsplash.com/photo-1511895426328-dc8714191300?auto=format&fit=crop&w=800" alt="Articulo 3">
+                </div>
+                <div class="service-info">
+                    <p style="font-size: 0.85rem; color: var(--c-pink); font-weight: bold; margin-bottom: 5px;">FAMILIA</p>
+                    <h3>Límites Sanos</h3>
+                    <p>Por qué decir "no" desde el amor fortalece a tus hijos.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="legado" class="section-pink">
+        <h2>Donar importa.</h2>
+        <h4 id="montoPadrino" class="monto-display">$2,000</h4>
+        <p id="impactoPadrino" style="font-size: 1.1rem; margin-bottom: 20px; font-weight: 600; color: var(--c-purple); display: inline-block; padding: 12px 25px; border-radius: 50px; background: #f9f9f9;">"Financias un seguimiento de 1 mes."</p>
+        <input type="range" min="500" max="20000" step="500" value="2000" class="slider-elite" id="padrinoSizer">
+        <button class="btn-brutal" style="background: var(--c-teal); margin-top: 30px;" onclick="alert('¡Gracias!')">Hacer Donación</button>
+    </section>
+
+</main>
+
+<script>
+    // --- LÓGICA RESPONSIVA (MENU HAMBURGUESA) ---
+    const menuBtn = document.getElementById('menuBtn');
+    const overlay = document.getElementById('overlay');
+    const body = document.body;
+
+    function toggleMenu() {
+        body.classList.toggle('sidebar-active');
+    }
+
+    menuBtn.addEventListener('click', toggleMenu);
+    overlay.addEventListener('click', toggleMenu);
+
+    // Cerrar menú al hacer clic en un link (para móviles)
+    document.querySelectorAll('.nav-menu-item').forEach(link => {
+        link.addEventListener('click', () => {
+            body.classList.remove('sidebar-active');
+        });
+    });
+
+    // --- HERO SLIDER ---
+    let currentSlide = 0;
+    const slides = document.querySelectorAll('.slide');
+    const dots = document.querySelectorAll('.dot');
+
+    function goToSlide(index) {
+        slides[currentSlide].classList.remove('active');
+        dots[currentSlide].classList.remove('active');
+        currentSlide = index;
+        slides[currentSlide].classList.add('active');
+        dots[currentSlide].classList.add('active');
+    }
+
+    setInterval(() => {
+        let next = (currentSlide + 1) % slides.length;
+        goToSlide(next);
+    }, 6000);
+
+    // --- DONACIONES ---
+    const sizer = document.getElementById('padrinoSizer');
+    const monto = document.getElementById('montoPadrino');
+    const impacto = document.getElementById('impactoPadrino');
+    
+    sizer.addEventListener('input', function() {
+        const val = parseInt(this.value);
+        monto.innerText = `$${val.toLocaleString()}`;
+        if(val <= 1000) impacto.innerText = '"Kits de arte y materiales."';
+        else if(val <= 5000) impacto.innerText = '"Beca: Tratamiento clínico mensual."';
+        else impacto.innerText = '"Padrino: Aseguras un año entero."';
+    });
+
+    // --- ACTIVE LINKS ---
+    const menuItems = document.querySelectorAll('.nav-menu-item');
+    menuItems.forEach(item => {
+        item.addEventListener('click', function() {
+            menuItems.forEach(i => i.classList.remove('active'));
+            this.classList.add('active');
+        });
+    });
+</script>
+{% endblock %}

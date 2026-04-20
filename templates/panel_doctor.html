@@ -1,0 +1,325 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Panel de Terapeuta - HOPE{% endblock %}
+
+{% block content %}
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
+
+<style>
+    .tab-content { display: none; animation: fadeInUpBrutal 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    .tab-content.active { display: block; }
+
+    .tab-btn {
+        padding: 15px 30px !important;
+        border-radius: 30px !important;
+        font-family: var(--font-headings);
+        font-size: 16px;
+        transition: all 0.3s;
+    }
+    .tab-btn.active {
+        background: var(--color-brand-teal) !important;
+        color: white !important;
+        border-color: var(--color-brand-teal) !important;
+        box-shadow: 0 10px 25px rgba(41, 126, 126, 0.3);
+        transform: translateY(-2px);
+    }
+
+    .appointment-card-premium {
+        background: var(--bg-white);
+        border-radius: 24px;
+        padding: 30px;
+        margin-bottom: 25px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-left: 8px solid var(--color-brand-teal);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.04);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .appointment-card-premium:hover { transform: translateY(-5px); box-shadow: 0 20px 40px rgba(41, 126, 126, 0.15); }
+    .appointment-card-premium::before {
+        content: ''; position: absolute; top: 0; left: 0; width: 8px; height: 100%;
+        background: var(--color-brand-teal); box-shadow: 0 0 15px var(--color-brand-teal);
+        animation: pulseBorder 2s infinite ease-in-out;
+    }
+
+    @keyframes pulseBorder {
+        0%, 100% { opacity: 0.8; box-shadow: 0 0 5px var(--color-brand-teal); }
+        50% { opacity: 1; box-shadow: 0 0 20px var(--color-brand-teal); }
+    }
+
+    /* Estado vacío ultra elegante (SIN LÍNEAS PUNTEADAS) */
+    .empty-state-premium {
+        background: var(--bg-white);
+        border-radius: 32px;
+        padding: 60px 20px;
+        text-align: center;
+        box-shadow: inset 0 0 30px rgba(0,0,0,0.02);
+        border: 1px solid #f1f5f9;
+    }
+
+    .coffee-container {
+        position: relative; width: 120px; height: 120px; margin: 0 auto 20px auto;
+        display: flex; justify-content: center; align-items: center;
+    }
+    .coffee-cup { font-size: 70px; color: #cbd5e1; position: relative; z-index: 2; animation: floatCup 4s ease-in-out infinite; }
+    .steam {
+        position: absolute; width: 6px; height: 25px; background: #e2e8f0; border-radius: 10px;
+        bottom: 80px; opacity: 0; animation: steaming 2.5s infinite ease-out; z-index: 1;
+    }
+    .steam:nth-child(1) { left: 45px; animation-delay: 0s; }
+    .steam:nth-child(2) { left: 60px; animation-delay: 0.8s; }
+    .steam:nth-child(3) { left: 75px; animation-delay: 1.6s; }
+
+    @keyframes steaming {
+        0% { transform: translateY(0) scaleX(1); opacity: 0; }
+        50% { opacity: 0.8; }
+        100% { transform: translateY(-50px) scaleX(1.5); opacity: 0; filter: blur(4px); }
+    }
+    @keyframes floatCup {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-8px); }
+    }
+
+    .fc { font-family: var(--font-body); background: var(--bg-white); padding: 30px; border-radius: 32px; box-shadow: 0 20px 50px rgba(0,0,0,0.03); border: none !important; }
+    .fc-theme-standard td, .fc-theme-standard th { border-color: #f1f5f9; }
+    .fc-toolbar-title { font-family: var(--font-headings) !important; font-size: 28px !important; color: var(--text-main); }
+    .fc-button-primary { background-color: var(--color-brand-teal) !important; border-radius: 12px !important; border: none !important; }
+
+    /* --- NUEVO ESTILO DE BIENVENIDA CHULO --- */
+    .welcome-card {
+        background: linear-gradient(135deg, #ffffff 0%, #f0fdfa 100%);
+        border: 1px solid #ccfbf1;
+        position: relative;
+        overflow: hidden;
+    }
+    .welcome-card::after {
+        content: '\f004'; /* Corazón de FontAwesome */
+        font-family: 'Font Awesome 5 Free';
+        font-weight: 900;
+        position: absolute;
+        right: -20px;
+        top: -20px;
+        font-size: 150px;
+        color: rgba(41, 126, 126, 0.03);
+        transform: rotate(-15deg);
+        pointer-events: none;
+    }
+    .motivational-quote {
+        background: rgba(255, 255, 255, 0.8);
+        border-left: 4px solid var(--color-gold-olive);
+        padding: 15px 25px;
+        border-radius: 0 16px 16px 0;
+        display: inline-block;
+        margin-top: 15px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+    }
+
+@media screen and (max-width: 768px) {
+        .appointment-card-premium { flex-direction: column; text-align: center; gap: 20px; border-left: none; border-top: 8px solid var(--color-brand-teal); padding: 25px 20px; }
+        .appointment-card-premium::before { top: 0; left: 0; width: 100%; height: 8px; }
+        .botones-cita { display: flex; flex-direction: column; width: 100%; gap: 10px; }
+        
+        /* Ajustes específicos del doctor en móvil */
+        .tab-btn { padding: 12px 20px !important; font-size: 14px; width: 100%; }
+        .welcome-card h1.chic-title { font-size: 32px !important; margin-top: 25px; }
+        .coffee-container { width: 80px; height: 80px; }
+        .coffee-cup { font-size: 50px; }
+    }
+</style>
+
+<div class="panel-wrapper" style="background-color: #fafbfd; padding-bottom: 100px;">
+    <div class="container">
+        
+        <div class="chic-panel fade-in-up welcome-card" style="margin-bottom: 50px; text-align: center; border-bottom: 8px solid var(--color-brand-teal);">
+            <p class="step-tag" style="background: var(--color-brand-teal); color: white; border-radius: 20px; padding: 8px 16px; font-size: 13px; box-shadow: 0 4px 10px rgba(41,126,126,0.2);">
+                <i class="fas fa-sparkles" style="color: #fde047;"></i> Centro de Mando Clínico
+            </p>
+            
+            <h1 class="chic-title" style="color: var(--color-brand-teal); font-size: 46px; margin-bottom: 5px; margin-top: 15px;">
+                Dr. {{ request.user.first_name }}
+            </h1>
+            
+            <div class="motivational-quote">
+                <p id="frase-diaria" style="color: var(--text-muted); font-size: 17px; font-style: italic; margin: 0; font-weight: 500;">
+                    Cargando mensaje especial...
+                </p>
+            </div>
+
+            <div style="display: flex; justify-content: center; gap: 15px; margin-top: 40px; flex-wrap: wrap;">
+                <button class="time-slot-btn tab-btn active" onclick="openTab('agenda')">
+                    <i class="fas fa-calendar-day"></i> Agenda de Hoy
+                </button>
+                <button class="time-slot-btn tab-btn" onclick="openTab('calendario')">
+                    <i class="fas fa-calendar-alt"></i> Mes Clínico
+                </button>
+                <button class="time-slot-btn tab-btn" onclick="openTab('pacientes')">
+                    <i class="fas fa-users"></i> Mis Pacientes
+                </button>
+            </div>
+        </div>
+
+        <div id="agenda" class="tab-content active">
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 30px; padding: 0 10px;">
+                <h2 class="chic-title" style="font-size: 32px;"><i class="fas fa-sun" style="color: var(--color-gold-olive);"></i> Sesiones de Hoy</h2>
+                <span class="step-tag" style="background: var(--color-brand-teal); color: white; margin: 0;">{{ citas_hoy.count }} Citas</span>
+            </div>
+
+            {% if citas_hoy %}
+                {% for cita in citas_hoy %}
+                <div class="appointment-card-premium">
+                    <div style="display: flex; align-items: center; gap: 30px;">
+                        <div style="background: var(--bg-light); padding: 15px 25px; border-radius: 16px; text-align: center; border: 2px solid #f1f5f9;">
+                            <span class="chic-title" style="font-size: 28px; color: var(--color-brand-teal);">{{ cita.hora|time:"H:i" }}</span>
+                        </div>
+                        <div>
+                            <h3 class="chic-title" style="font-size: 22px; margin-bottom: 5px;">{{ cita.paciente.first_name|title }}</h3>
+                            <p style="color: var(--text-muted); font-size: 15px;"><i class="fas fa-notes-medical" style="color: var(--color-orange-rust);"></i> {{ cita.motivo }}</p>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 15px;">
+                        {% if cita.enlace_meet %}
+                            <a href="{{ cita.enlace_meet }}" target="_blank" class="btn-brutal btn-primary" style="padding: 15px 25px; font-size: 16px;">
+                                <i class="fas fa-video"></i> Iniciar Meet
+                            </a>
+                        {% endif %}
+                        <button class="btn-brutal btn-secondary" onclick="abrirModalNotas('{{ cita.id }}', '{{ cita.paciente.first_name }}')" style="padding: 15px 25px; font-size: 16px;">
+                            <i class="fas fa-pen-nib"></i> Notas Rápidas
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state-premium fade-in-up">
+                    <div class="coffee-container">
+                        <div class="steam"></div>
+                        <div class="steam"></div>
+                        <div class="steam"></div>
+                        <i class="fas fa-coffee coffee-cup"></i>
+                    </div>
+                    <h3 class="chic-title" style="color: var(--text-main); font-size: 28px; margin-bottom: 10px;">Agenda Despejada</h3>
+                    <p style="color: var(--text-muted); font-size: 16px;">No tienes sesiones programadas para hoy. Tómate un café o actualiza expedientes.</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <div id="calendario" class="tab-content">
+            <div id="fullCalendarDiv"></div>
+        </div>
+
+        <div id="pacientes" class="tab-content">
+            <h2 class="chic-title" style="font-size: 32px; margin-bottom: 30px; padding: 0 10px;"><i class="fas fa-users" style="color: var(--color-brand-teal);"></i> Directorio de Pacientes</h2>
+            
+            {% if pacientes_data %}
+                <div class="grid-layout">
+                    {% for data in pacientes_data %}
+                    <div class="card float-hover" style="align-items: center; text-align: center; border-bottom: 6px solid #e0f2fe;">
+                        <div style="width: 80px; height: 80px; background: #e0f2fe; color: #0284c7; font-size: 32px; display: flex; align-items: center; justify-content: center; border-radius: 50%; margin-bottom: 20px; font-family: var(--font-headings); font-weight: bold;">
+                            {{ data.usuario.first_name|first|upper }}
+                        </div>
+                        <h3 class="chic-title" style="font-size: 20px;">{{ data.usuario.first_name|title }}</h3>
+                        <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 5px;">{{ data.usuario.email }}</p>
+                        <span class="step-tag" style="background: #f1f5f9; color: #64748b; margin-bottom: 25px;">{{ data.total_citas }} citas históricas</span>
+                        
+                        <a href="{% url 'detalle_paciente' data.usuario.id %}" class="btn-brutal btn-primary" style="width: 100%; padding: 12px; font-size: 15px; text-decoration: none;">
+                            <i class="fas fa-folder-open"></i> Abrir Expediente
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state-premium fade-in-up">
+                    <i class="fas fa-seedling" style="font-size: 60px; color: var(--color-gold-olive); margin-bottom: 20px; animation: floatCup 3s infinite;"></i>
+                    <h3 class="chic-title" style="color: var(--text-main); font-size: 26px;">Sembrando el terreno</h3>
+                    <p style="color: var(--text-muted);">Pronto tendrás pacientes asignados a tu cuidado.</p>
+                </div>
+            {% endif %}
+        </div>
+
+    </div>
+</div>
+
+<div class="modal-backdrop" id="modalNotasRapidas">
+    <div class="modal-box glass-panel premium-modal modal-large">
+        <span class="close-modal" onclick="cerrarModal('modalNotasRapidas')"><i class="fas fa-times"></i></span>
+        <div class="auth-header">
+            <h2>Nota de Sesión Rápida</h2>
+            <p>Paciente: <strong id="nombrePacienteNota" style="color: var(--color-brand-teal);"></strong></p>
+        </div>
+        <form id="formExpediente" action="{% url 'guardar_historial' %}" method="POST" class="custom-form">
+            {% csrf_token %}
+            <input type="hidden" name="cita_id" id="inputCitaId">
+            <div class="input-group">
+                <i class="fas fa-tag"></i>
+                <input type="text" name="diagnostico" placeholder="Tema Principal / Diagnóstico" required>
+            </div>
+            <div style="margin-bottom: 25px;">
+                <textarea name="notas_sesion" rows="5" required style="width: 100%; background: #F3F4F6; border: 2px solid transparent; border-radius: 16px; padding: 20px; font-family: var(--font-body); font-size: 15px; resize: vertical;" placeholder="Notas de la sesión..."></textarea>
+            </div>
+            <button type="submit" class="btn-brutal btn-primary">Guardar Nota <i class="fas fa-save"></i></button>
+        </form>
+    </div>
+</div>
+
+<script>
+    // --- MAGIA: Frases Motivacionales Lindas ---
+    document.addEventListener("DOMContentLoaded", () => {
+        const frasesLindas = [
+            "El mundo es más brillante gracias a tu empatía. ¡Gracias por estar aquí!",
+            "Cada sesión es una semilla de esperanza. Hoy cambiarás vidas.",
+            "Tu capacidad de escuchar es un superpoder. ¡Que tengas un día increíble!",
+            "Detrás de cada sonrisa recuperada, hay un profesional excepcional como tú.",
+            "Respira, sonríe y recuerda: tu trabajo ilumina los días más grises.",
+            "Tu paciencia y dedicación son el refugio seguro de alguien más."
+        ];
+        // Elige una frase al azar
+        const fraseElegida = frasesLindas[Math.floor(Math.random() * frasesLindas.length)];
+        document.getElementById("frase-diaria").innerHTML = `<i class="fas fa-quote-left" style="color: var(--color-gold-olive); opacity: 0.5; margin-right: 8px;"></i> ${fraseElegida} <i class="fas fa-heart" style="color: var(--color-magenta-pink); margin-left: 8px; font-size: 14px;"></i>`;
+    });
+
+    // Lógica de navegación y modales
+    function openTab(tabName) {
+        document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.getElementById(tabName).classList.add('active');
+        event.currentTarget.classList.add('active');
+        if(tabName === 'calendario' && calendarInstance) { setTimeout(() => { calendarInstance.render(); }, 100); }
+    }
+
+    function abrirModalNotas(citaId, pacienteNombre) {
+        document.getElementById('inputCitaId').value = citaId;
+        document.getElementById('nombrePacienteNota').innerText = pacienteNombre;
+        document.getElementById('formExpediente').reset();
+        document.getElementById('modalNotasRapidas').classList.add('active');
+    }
+
+    function cerrarModal(modalId) { document.getElementById(modalId).classList.remove('active'); }
+
+    let calendarInstance;
+    document.addEventListener('DOMContentLoaded', function() {
+        var calendarEl = document.getElementById('fullCalendarDiv');
+        var eventos = JSON.parse('{{ eventos_calendario_json|escapejs|default:"[]" }}');
+        calendarInstance = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth', locale: 'es',
+            headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek' },
+            events: eventos, eventTimeFormat: { hour: 'numeric', minute: '2-digit', meridiem: 'short' }
+        });
+        calendarInstance.render();
+    });
+
+    document.getElementById('formExpediente').addEventListener('submit', function(e) {
+        e.preventDefault();
+        fetch(this.getAttribute("action"), { method: "POST", body: new FormData(this), headers: { "X-Requested-With": "XMLHttpRequest" } })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === "success") { cerrarModal('modalNotasRapidas'); alert("Nota guardada exitosamente."); } 
+            else { alert("Error: " + data.message); }
+        });
+    });
+</script>
+{% endblock %}

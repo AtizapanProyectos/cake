@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Verificación de Cuenta - HOPE{% endblock %}
+
+{% block content %}
+<style>
+    .verification-wrapper {
+        min-height: calc(100vh - 80px);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: var(--bg-light);
+        padding: 20px;
+    }
+    
+    .result-card {
+        text-align: center;
+        max-width: 500px;
+        padding: 50px 40px;
+        border-top: 6px solid var(--color-brand-teal);
+    }
+    
+    .icon-container {
+        font-size: 80px;
+        margin-bottom: 20px;
+        display: inline-block;
+    }
+    
+    /* Animación de latido para el éxito */
+    .success-pulse {
+        color: var(--color-gold-olive); /* El dorado de tu carita feliz */
+        animation: pulseIcons 1.5s ease-in-out infinite;
+    }
+    
+    /* Animación de movimiento suave para el error */
+    .error-shake {
+        color: var(--color-magenta-pink); /* El magenta del corazón */
+        animation: floatAnim 3s ease-in-out infinite;
+    }
+
+    .result-card h1 {
+        font-size: 32px;
+        color: var(--text-main);
+        margin-bottom: 15px;
+    }
+
+    .result-card p {
+        color: var(--text-muted);
+        font-size: 18px;
+        line-height: 1.6;
+        margin-bottom: 35px;
+    }
+</style>
+
+<div class="verification-wrapper">
+    <div class="result-card glass-panel fade-in-up">
+        
+        {% if exito %}
+            <div class="icon-container success-pulse">
+                <i class="fas fa-smile-beam"></i>
+            </div>
+            
+            <h1>¡Cuenta verificada!</h1>
+            <p>
+                Tu correo electrónico ha sido confirmado exitosamente. Ya formas parte de la comunidad <strong>HOPE</strong>. <br><br>
+                Puedes cerrar esta pestaña de forma segura, o hacer clic abajo para ir a iniciar sesión y agendar tu primera cita.
+            </p>
+            
+            <a href="{% url 'modulo_informativo' %}" class="btn-brutal">
+                <i class="fas fa-user"></i> Ir a Iniciar Sesión
+            </a>
+            
+        {% else %}
+            <div class="icon-container error-shake">
+                <i class="fas fa-heart-broken"></i>
+            </div>
+            
+            <h1>Enlace no válido</h1>
+            <p>
+                Parece que este enlace de verificación ha expirado o tu cuenta ya fue activada anteriormente. 
+            </p>
+            
+            <a href="/informativo/" class="btn-brutal btn-secondary" style="width: 100%;">
+                Volver al inicio
+            </a>
+        {% endif %}
+        
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,588 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Mi Panel - HOPE{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<link rel="stylesheet" type="text/css" href="https://npmcdn.com/flatpickr/dist/themes/airbnb.css">
+
+{{ dias_disponibles_json|json_script:"dias-data" }}
+{% csrf_token %}
+
+<style>
+    /* ==========================================================================
+       1. EL CALENDARIO PERFECTO (CORRECCIÓN DE LA CUADRÍCULA ROTA)
+       ========================================================================== */
+    .flatpickr-calendar { width: 350px !important; padding: 15px !important; border-radius: 24px !important; box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15) !important; border: none !important; font-family: var(--font-headings) !important; z-index: 99999 !important; }
+    .flatpickr-days, .dayContainer { width: 100% !important; min-width: 100% !important; max-width: 100% !important; }
+    .flatpickr-day { flex-basis: 14.2857% !important; max-width: 14.2857% !important; height: 42px !important; line-height: 42px !important; margin: 0 !important; border-radius: 12px !important; font-weight: 500; box-sizing: border-box !important; }
+    .flatpickr-day.prevMonthDay, .flatpickr-day.nextMonthDay { visibility: hidden !important; }
+
+    /* ==========================================================================
+       2. LOS COLORES MÁGICOS (VERDE Y ROJO PASTEL)
+       ========================================================================== */
+    .flatpickr-day.flatpickr-disabled, .flatpickr-day.flatpickr-disabled:hover { background-color: #ffffff !important; color: #000000 !important; border-color: transparent !important; }
+    .flatpickr-day:not(.flatpickr-disabled):not(.selected):not(.today) { background-color: #d1fae5 !important; color: #059669 !important; border-color: transparent !important; font-weight: 600; border-radius: 10px !important; }
+    .flatpickr-day:not(.flatpickr-disabled):hover { background-color: #4efcab !important; transform: scale(1.08); transition: all 0.2s ease; }
+    .flatpickr-day.selected { background-color: var(--color-brand-teal) !important; color: #ffffff !important; border-color: var(--color-brand-teal) !important; border-radius: 10px !important; }
+
+    /* ==========================================================================
+       3. DETALLES VISUALES DEL CALENDARIO (MES Y DÍAS)
+       ========================================================================== */
+    .flatpickr-months .flatpickr-month { color: var(--color-brand-teal) !important; font-size: 18px !important; padding-top: 5px !important; }
+    .flatpickr-current-month .flatpickr-monthHand, .flatpickr-current-month .numInputWrapper { font-weight: 800 !important; }
+    span.flatpickr-weekday { color: #9ca3af !important; font-weight: 700 !important; text-transform: uppercase !important; font-size: 11px !important; }
+    .flatpickr-months .flatpickr-prev-month, .flatpickr-months .flatpickr-next-month { fill: var(--color-brand-teal) !important; color: var(--color-brand-teal) !important; }
+
+    /* ==========================================================================
+       4. ESTILOS CHIC DEL PANEL GENERAL
+       ========================================================================== */
+    .chic-panel { background: #ffffff; border-radius: 32px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.03); border: 1px solid rgba(0, 0, 0, 0.02); padding: 50px; transition: transform 0.3s ease; }
+    .chic-panel:hover { box-shadow: 0 25px 60px rgba(41, 126, 126, 0.06); }
+    .chic-title { font-family: var(--font-headings); font-weight: 600; letter-spacing: -0.5px; }
+    .step-tag { font-size: 12px; text-transform: uppercase; letter-spacing: 2px; font-weight: 700; color: var(--color-brand-teal); background: #e6f2f2; padding: 6px 12px; border-radius: 20px; display: inline-block; margin-bottom: 15px; }
+    .date-carousel { gap: 20px !important; padding: 15px 5px 25px 5px !important; }
+    .date-chip { padding: 22px 18px !important; border-radius: 20px; border: 1px solid #f3f4f6; background: #ffffff; box-shadow: 0 4px 15px rgba(0,0,0,0.02); flex-shrink: 0; }
+    .date-chip.active { box-shadow: 0 10px 25px rgba(41,126,126,0.2); transform: translateY(-3px); }
+    .slots-container { gap: 20px !important; margin-top: 15px; display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
+    .time-slot-btn { padding: 18px !important; border-radius: 16px; border: 2px solid #f3f4f6; background: var(--bg-white); color: #4b5563; font-weight: 600; letter-spacing: 0.5px; font-size: 16px; cursor: pointer; transition: all 0.2s; }
+    .time-slot-btn:hover, .time-slot-btn.active { background: var(--color-brand-teal); color: white; border-color: var(--color-brand-teal); transform: translateY(-2px); }
+    .panel-grid { gap: 50px; align-items: start; display: grid; grid-template-columns: 2fr 1fr; width: 100%; max-width: 100%; }
+    .main-column { min-width: 0; width: 100%; max-width: 100%; }
+    .carousel-wrapper { display: flex; align-items: center; gap: 10px; width: 100%; min-width: 0; margin-bottom: 20px; }
+    .date-carousel { display: flex; gap: 20px !important; overflow-x: auto; padding-top: 10px; padding-bottom: 20px !important; -ms-overflow-style: none; scrollbar-width: none; flex-grow: 1; min-width: 0 !important; scroll-behavior: smooth; }
+    .date-carousel::-webkit-scrollbar { display: none; }
+    .mood-tracker-gigante { background: #f8fafc; border-radius: 100px; padding: 15px 40px; display: inline-flex; gap: 40px; margin-top: 20px; }
+    .payment-box { background: #FFFFFF; max-width: 450px; margin: 0 auto; padding: 40px; border-radius: 20px; border: 2px solid #F3F4F6; }
+
+    /* 🔥 NUEVO: ANIMACIÓN PARA LA ALERTA MÁGICA 🔥 */
+    @keyframes popIn {
+        0% { transform: scale(0.5); opacity: 0; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+    .alerta-animada {
+        animation: popIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @media screen and (max-width: 900px) { .panel-grid { grid-template-columns: 1fr; } }
+    @media screen and (max-width: 768px) {
+        .flatpickr-calendar { width: 100% !important; max-width: 320px !important; box-sizing: border-box !important; margin: 0 auto !important; left: 50% !important; transform: translateX(-50%) !important; }
+        .payment-box { padding: 30px 20px !important; }
+        .date-chip { padding: 15px 12px !important; }
+        .mood-tracker-gigante { flex-wrap: wrap; justify-content: center; gap: 15px; padding: 20px; border-radius: 30px; }
+        .mood-btn-huge { font-size: 40px; }
+    }
+</style>
+
+<div class="panel-wrapper" style="background-color: #fafbfd; padding-bottom: 100px;">
+    <div class="container">
+
+        <div class="chic-panel fade-in-up" style="margin-bottom: 50px; text-align: center;">
+            <p style="text-transform: uppercase; font-size: 13px; font-weight: 700; color: #9ca3af; letter-spacing: 2px; margin-bottom: 10px;">Tu Espacio Seguro</p>
+            <h1 class="chic-title" style="color: var(--color-brand-teal); font-size: 42px; margin-bottom: 10px;">¡Hola, {{ user.first_name|default:"Paciente" }}!</h1>
+            <p style="color: var(--text-muted); font-size: 18px;">Antes de comenzar, tómate un segundo para ti. ¿Cómo te sientes hoy?</p>
+
+            <div class="mood-tracker-gigante">
+                <button class="mood-btn-huge" data-animo="Muy mal" title="Muy mal"><i class="fas fa-sad-cry"></i></button>
+                <button class="mood-btn-huge" data-animo="Triste" title="Triste"><i class="fas fa-frown"></i></button>
+                <button class="mood-btn-huge" data-animo="Normal" title="Normal"><i class="fas fa-meh"></i></button>
+                <button class="mood-btn-huge" data-animo="Bien" title="Bien"><i class="fas fa-smile"></i></button>
+                <button class="mood-btn-huge" data-animo="Excelente" title="Excelente"><i class="fas fa-grin-stars"></i></button>
+            </div>
+        </div>
+
+        <div class="panel-grid">
+            <div class="main-column">
+
+                {% if cita_proxima %}
+                <div class="chic-panel fade-in-up" style="border-top: 6px solid var(--color-brand-teal); text-align: center; display: flex; flex-direction: column; align-items: center;">
+                    <span class="step-tag" style="background: #e0f2fe; color: #0284c7; margin-bottom: 20px;">Próxima Sesión Confirmada</span>
+                    <div style="display: flex; justify-content: center; width: 100%; margin: 20px 0;">
+                        <i class="fas fa-video" style="font-size: 70px; color: var(--color-brand-teal);"></i>
+                    </div>
+                    <h2 class="chic-title" style="font-size: 32px; margin-bottom: 10px; width: 100%;">Tu sala te espera</h2>
+                    
+                    <div style="background: #f8fafc; padding: 30px; border-radius: 20px; margin: 25px 0; border: 1px solid #e2e8f0; width: 100%;">
+                        <p style="color: var(--text-muted); font-size: 16px; margin-bottom: 5px;">Tienes una sesión programada para el:</p>
+                        <h3 class="chic-title" style="color: var(--text-main); font-size: 24px; margin-bottom: 5px;">{{ cita_proxima.fecha|date:"l, d \d\e F"|title }}</h3>
+                        <h2 style="color: var(--color-brand-teal); font-size: 38px; font-weight: 700; margin-bottom: 0;">{{ cita_proxima.hora|time:"h:i A" }}</h2>
+                    </div>
+
+                    {% if cita_proxima.enlace_meet %}
+                    <div id="btn-locked" style="background: #f1f5f9; padding: 20px; border-radius: 16px; color: #64748b; width: 100%; text-align: center; border: 2px dashed #cbd5e1;">
+                        <i class="fas fa-clock" style="font-size: 28px; margin-bottom: 10px; color: #94a3b8;"></i>
+                        <p style="font-weight: 700; margin: 0; font-size: 18px; color: var(--text-main);">Aún no es hora</p>
+                        <p style="font-size: 14px; margin: 5px 0 0 0;">Pronto se activará tu acceso a tu sesión (1 hora antes).</p>
+                    </div>
+
+                    <a href="{{ cita_proxima.enlace_meet }}" target="_blank" id="btn-unlocked" class="btn-brutal btn-primary" style="display: none; width: 100%; justify-content: center; padding: 20px; font-size: 18px; text-decoration: none;">
+                        Ingresar a mi Consulta <i class="fas fa-external-link-alt" style="margin-left: 10px;"></i>
+                    </a>
+                    
+                    <script>
+                        document.addEventListener("DOMContentLoaded", function() {
+                            function revisarHoraCita() {
+                                const fechaStr = "{{ cita_proxima.fecha|date:'Y-m-d' }}";
+                                const horaStr = "{{ cita_proxima.hora|time:'H:i:s' }}"; 
+                                
+                                if (!fechaStr || !horaStr) return;
+            
+                                const citaDate = new Date(`${fechaStr}T${horaStr}`);
+                                const now = new Date();
+                                
+                                // Calculamos la diferencia en milisegundos
+                                const diff = citaDate - now;
+            
+                                // 1 hora = 3600000 milisegundos
+                                // Si falta 1 hora o menos (y la cita no ha pasado hace más de 1 hora)
+                                if (diff <= 3600000 && diff >= -3600000) {
+                                    document.getElementById('btn-locked').style.display = 'none';
+                                    document.getElementById('btn-unlocked').style.display = 'inline-flex';
+                                } else {
+                                    document.getElementById('btn-locked').style.display = 'block';
+                                    document.getElementById('btn-unlocked').style.display = 'none';
+                                }
+                            }
+            
+                            revisarHoraCita(); // Revisa cuando carga la página
+                            setInterval(revisarHoraCita, 60000); // Revisa en vivo cada minuto
+                        });
+                    </script>
+                    {% else %}
+                    <div style="background: #fffbeb; border: 1px solid #fde68a; padding: 20px; border-radius: 16px; color: #d97706; width: 100%;">
+                        <i class="fas fa-hourglass-half" style="font-size: 24px; margin-bottom: 10px;"></i>
+                        <p style="font-weight: 600;">Generando enlace seguro...</p>
+                        <p style="font-size: 14px;">Tu enlace de Google Meet aparecerá aquí pronto.</p>
+                    </div>
+                    {% endif %}
+                </div>
+                {% else %}
+
+                {% if user.perfil.psicologo_asignado %}
+                <div id="reto-post-sesion" class="chic-panel fade-in-up" style="border-top: 6px solid var(--color-gold-olive); margin-bottom: 30px; text-align: center; background: linear-gradient(135deg, #ffffff, #fffbeb);">
+                    <i class="fas fa-award" style="font-size: 60px; color: var(--color-gold-olive); margin-bottom: 20px;"></i>
+                    <h2 class="chic-title" style="font-size: 32px;">¡Excelente trabajo en tu sesión!</h2>
+                    <p style="font-size: 18px; color: var(--text-main); font-weight: 600; margin-bottom: 10px;">¿Cómo te sentiste hoy?</p>
+                    <p style="font-size: 15px; color: var(--text-muted); margin-bottom: 25px; max-width: 550px; margin-left: auto; margin-right: auto;">
+                        Cada paso que das es un avance enorme en tu proceso de sanación. Para mantener este buen ritmo, hemos calculado tu próxima fecha ideal.
+                    </p>
+
+                    <div style="background: white; border: 2px solid var(--color-brand-teal); padding: 30px 20px; border-radius: 16px; display: inline-block; box-shadow: 0 10px 25px rgba(41,126,126,0.1); width: 100%; max-width: 480px;">
+                        <span id="mensaje-proxima-semana" style="font-size: 18px; color: var(--color-brand-teal); font-weight: 700; display: block; margin-bottom: 20px;">
+                            <i class="fas fa-calendar-check" style="margin-right: 8px;"></i> Calculando tu próxima fecha...
+                        </span>
+                        
+                        <button id="btn-confirmar-rapido" class="btn-brutal btn-primary" onclick="cargarHorariosRapidos()" style="width: 100%; padding: 15px; font-size: 16px; margin-bottom: 15px;">
+                            Confirmar próxima cita <i class="fas fa-check" style="margin-left: 8px;"></i>
+                        </button>
+
+                        <div id="horarios-rapidos-container" style="display: none; margin-bottom: 20px; border-top: 1px dashed #e2e8f0; padding-top: 20px;">
+                            <p style="font-size: 15px; font-weight: 600; color: var(--text-main); margin-bottom: 15px;">Horarios disponibles para ese día:</p>
+                            <div id="quick-slots" class="slots-container" style="justify-content: center; margin-top: 0; gap: 10px !important;">
+                                </div>
+                        </div>
+                        
+                        <a href="#" onclick="mostrarCalendario(); return false;" style="color: var(--text-muted); font-size: 14px; text-decoration: underline; font-weight: 500;">
+                            ¿Gustas explorar otro horario o fecha?
+                        </a>
+                    </div>
+                </div>
+                {% else %}
+                <div id="reto-primera-vez" class="chic-panel fade-in-up" style="border-top: 6px solid var(--color-brand-teal); margin-bottom: 30px; background: linear-gradient(135deg, #ffffff, #f0fdfa);">
+                    <div style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap; justify-content: center; text-align: center;">
+                        <i class="fas fa-seedling" style="font-size: 50px; color: var(--color-brand-teal);"></i>
+                        <div>
+                            <h3 class="chic-title" style="font-size: 24px; color: var(--text-main); margin-bottom: 5px;">El Reto HOPE: Compromiso Semanal</h3>
+                            <p style="color: var(--text-muted); font-size: 15px; margin-bottom: 15px; max-width: 450px;">Las estadísticas indican que asistir 1 vez por semana acelera tu proceso de sanación. ¿Estás listo/a para comprometerte con tu bienestar?</p>
+
+                            <label class="float-hover" style="display: inline-flex; align-items: center; gap: 10px; font-weight: 600; color: white; cursor: pointer; font-size: 15px; background: var(--color-brand-teal); padding: 12px 25px; border-radius: 30px; box-shadow: 0 5px 15px rgba(41,126,126,0.3); transition: all 0.3s;">
+                                <input type="checkbox" style="width: 20px; height: 20px; accent-color: #ffffff;" onchange="celebrarReto(this)">
+                                ¡Sí, acepto el reto semanal!
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <div id="booking-wizard" class="chic-panel fade-in-up" style="display: none; border-top: 6px solid var(--color-brand-teal);">
+
+                    <div id="step-1-schedule">
+                        <div class="wizard-header" style="margin-bottom: 50px; border-bottom: 1px solid #f1f5f9; padding-bottom: 30px;">
+                            <span class="step-tag">Paso 1 de 2</span>
+                            <h2 class="chic-title" style="font-size: 32px;"><i class="fas fa-calendar-alt" style="color: var(--color-brand-teal); margin-right: 10px;"></i> Confirma el día y la hora</h2>
+                            <p style="color: #64748b; font-size: 16px; margin-top: 10px;">Selecciona el espacio en la agenda del terapeuta.</p>
+                        </div>
+
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+                            <h4 class="chic-title" style="margin: 0; color: var(--text-main); font-size: 20px;">1. Elige un día</h4>
+
+                            <div style="position: relative; overflow: hidden; border-radius: 12px; width: 150px;">
+                                <div style="pointer-events: none; padding: 10px 15px; background: #f8fafc; color: var(--color-brand-teal); border: 1px solid #e2e8f0; font-size: 14px; border-radius: 12px; text-align: center; font-weight: 600;">
+                                    <i class="fas fa-calendar-day"></i> Calendario
+                                </div>
+                                <input type="text" id="calendario-picker" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer;">
+                            </div>
+                        </div>
+
+                        <div class="carousel-wrapper">
+                            <button id="btn-prev-week" class="carousel-arrow" type="button" style="background: white; border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.05);"><i class="fas fa-chevron-left"></i></button>
+
+                            <div class="date-carousel" id="dateCarousel">
+                                {% for dia, horas in dias_disponibles.items %}
+                                <button type="button" class="date-chip {% if forloop.first %}active{% endif %}" data-target="slots-{{ dia|date:'Ymd' }}" data-fecha="{{ dia|date:'Y-m-d' }}">
+                                    <span class="day-name" style="font-size: 12px; letter-spacing: 1px;">{{ dia|date:"D"|title }}</span>
+                                    <span class="day-number" style="font-size: 28px;">{{ dia|date:"d" }}</span>
+                                </button>
+                                {% empty %}
+                                <p style="color: var(--text-muted); padding: 10px; font-style: italic;">No hay fechas disponibles por el momento.</p>
+                                {% endfor %}
+                            </div>
+
+                            <button id="btn-next-week" class="carousel-arrow" type="button" style="background: white; border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.05);"><i class="fas fa-chevron-right"></i></button>
+                        </div>
+
+                        <h4 class="chic-title" style="margin-top: 60px; margin-bottom: 10px; color: var(--text-main); font-size: 20px;">2. Horarios disponibles</h4>
+                        <p style="color: #9ca3af; font-size: 14px; margin-bottom: 25px;">La sesión tiene una duración de 50 minutos.</p>
+
+                        {% for dia, horas in dias_disponibles.items %}
+                            
+                            {% if forloop.first %}
+                            <div class="slots-container" id="slots-{{ dia|date:'Ymd' }}">
+                            {% else %}
+                            <div class="slots-container" id="slots-{{ dia|date:'Ymd' }}" style="display: none;">
+                            {% endif %}
+                                
+                                {% for h in horas %}
+                                <button class="time-slot-btn" data-fecha="{{ dia|date:'Y-m-d' }}" data-hora="{{ h|time:'H:i' }}">
+                                    {{ h|time:"h:i A" }}
+                                </button>
+                                {% endfor %}
+                            
+                            </div>
+                        {% endfor %}
+
+                    </div>
+
+                    <div id="step-2-payment" style="display: none; text-align: center; padding: 20px 0;">
+                        <button id="btn-back-schedule" style="background:none; border:none; color: var(--color-brand-teal); font-weight: 600; cursor:pointer; font-size: 16px; margin-bottom: 30px; float: left;"><i class="fas fa-arrow-left"></i> Volver al calendario</button>
+                        <div style="clear: both;"></div>
+
+                        <span class="step-tag">Paso 2 de 2</span>
+                        <h2 class="chic-title" style="color: var(--text-main); font-size: 32px;"><i class="fas fa-lock" style="color: var(--color-gold-olive); margin-right: 10px;"></i> Confirmar Cita</h2>
+                        <p id="selected-time-text" style="font-size: 16px; color: #64748b; margin: 25px 0;"></p>
+
+                        <div class="payment-box" style="border: none; background: #f8fafc; padding: 50px; border-radius: 30px;">
+                            <p style="text-transform: uppercase; letter-spacing: 2px; font-size: 12px; color: #9ca3af; margin-bottom: 10px;">Total a pagar</p>
+                            <h3 style="font-size: 42px; margin-bottom: 5px; color: var(--color-brand-teal); font-weight: 300;">$100.00 <span style="font-size: 16px;">MXN</span></h3>
+                            <p style="color: var(--text-main); font-weight: 500; margin-bottom: 25px;">Consulta Psicológica Online</p>
+
+                            <div style="background: #e2e8f0; padding: 15px; border-radius: 12px; margin-bottom: 25px; text-align: left;">
+                                <label style="display: flex; align-items: start; gap: 12px; font-size: 13px; color: var(--text-main); cursor: pointer;">
+                                    <input type="checkbox" id="check-consentimiento" style="min-width: 20px; height: 20px; margin-top: 2px; accent-color: var(--color-brand-teal);">
+                                    <span style="line-height: 1.4;">Doy mi <strong>consentimiento informado</strong> para recibir atención psicológica y acepto las políticas de la clínica HOPE.</span>
+                                </label>
+                            </div>
+
+                            <button id="btn-simulate-pay" class="btn-brutal btn-primary" style="width: 100%; padding: 20px; font-size: 18px;">
+                                Confirmar y Agendar
+                            </button>
+                        </div>
+
+                    </div>
+
+                    <div id="step-3-loading" style="display: none; text-align: center; padding: 100px 0;">
+                        <i class="fas fa-circle-notch fa-spin" style="font-size: 50px; color: var(--color-brand-teal);"></i>
+                        <h3 class="chic-title" style="margin-top: 30px; color: var(--text-main); font-weight: 400;">Preparando tu espacio...</h3>
+                    </div>
+                </div>
+
+                <div id="confirmed-appointment" class="chic-panel fade-in-up" style="display: none; border-top: 6px solid var(--color-magenta-pink);">
+                    <div style="text-align: center; margin-bottom: 40px;">
+                        <i class="fas fa-check-circle" style="font-size: 60px; color: #10B981; margin-bottom: 20px;"></i>
+                        <h2 class="chic-title">¡Todo está listo!</h2>
+                        <p style="color: #64748b;">Tu cita ha sido guardada con éxito.</p>
+                    </div>
+                    
+                    <div class="date-badge" style="background: #f8fafc; padding: 30px; border-radius: 20px; text-align: center; margin-bottom: 30px;">
+                        <h3 class="chic-title" id="display-date" style="color: var(--text-main); margin-bottom: 10px;"></h3>
+                        <p id="display-time" style="margin:0; font-weight: 700; font-size: 28px; color: var(--color-brand-teal);"></p>
+                    </div>
+                    
+                    <div class="appointment-action" style="text-align: center;">
+                        <button onclick="location.reload();" class="btn-brutal" style="background: linear-gradient(135deg, var(--color-magenta-pink), #8a2b5c); display: inline-flex; width: 100%; justify-content: center; padding: 20px; font-size: 18px; border: none; cursor: pointer; color: white;">
+                            Ir a mi sala de espera <i class="fas fa-video" style="margin-left: 10px;"></i>
+                        </button>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="side-column" style="display: flex; flex-direction: column; gap: 30px;">
+
+                <div class="chic-panel" style="padding: 40px 30px; text-align: center;">
+                    <div style="background: #FEF3C7; width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 25px auto;">
+                        <i class="fas fa-leaf" style="font-size: 30px; color: var(--color-gold-olive);"></i>
+                    </div>
+                    <h3 class="chic-title" style="margin-bottom: 15px; color: var(--text-main); font-size: 22px;">Tip del día</h3>
+                    <p style="color: var(--text-muted); font-size: 16px; line-height: 1.8;">Respira profundo. Cuidar de tu mente es el acto de amor propio más grande que existe.</p>
+                </div>
+
+                <div class="chic-panel" style="padding: 40px 30px; text-align: center; background: var(--color-brand-teal); color: white;">
+                    <i class="fas fa-headset" style="font-size: 30px; margin-bottom: 20px; opacity: 0.9;"></i>
+                    <h3 class="chic-title" style="margin-bottom: 15px; color: white; font-size: 20px;">¿Necesitas ayuda?</h3>
+                    <p style="font-size: 14px; opacity: 0.8; margin-bottom: 25px; line-height: 1.6;">Si tienes problemas para agendar o dudas sobre tu sesión, estamos aquí para ti.</p>
+                    <button style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); color: white; padding: 12px 25px; border-radius: 30px; font-weight: 600; cursor: pointer; transition: 0.3s; font-family: var(--font-headings);">
+                        Contactar Soporte
+                    </button>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<div id="alerta-reto" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); z-index: 999999; justify-content: center; align-items: center;">
+    <div class="chic-panel alerta-animada" style="max-width: 500px; text-align: center; padding: 60px 40px; margin: 20px;">
+        <i class="fas fa-sparkles" style="font-size: 70px; color: var(--color-gold-olive); margin-bottom: 25px;"></i>
+        <h2 style="font-family: var(--font-headings); font-size: 45px; color: var(--color-brand-teal); margin-bottom: 15px; line-height: 1.1;">¡Reto Aceptado!</h2>
+        <p style="font-size: 26px; color: var(--text-main); font-weight: 600; line-height: 1.4; margin-bottom: 35px;">Juntos podremos crear una versión de ti increíble.</p>
+        <button onclick="cerrarAlertaReto()" class="btn-brutal btn-primary" style="width: 100%; font-size: 20px; padding: 20px;">
+            ¡Vamos a lograrlo! <i class="fas fa-arrow-right" style="margin-left: 10px;"></i>
+        </button>
+    </div>
+</div>
+
+<div id="alerta-consentimiento" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); z-index: 999999; justify-content: center; align-items: center;">
+    <div class="chic-panel alerta-animada" style="max-width: 500px; text-align: center; padding: 60px 40px; margin: 20px; border-top: 6px solid var(--color-orange-rust);">
+        <i class="fas fa-exclamation-triangle" style="font-size: 70px; color: var(--color-orange-rust); margin-bottom: 25px;"></i>
+        <h2 style="font-family: var(--font-headings); font-size: 32px; color: var(--text-main); margin-bottom: 15px; line-height: 1.2;">Falta un pequeño paso</h2>
+        <p style="font-size: 18px; color: var(--text-muted); line-height: 1.5; margin-bottom: 35px;">Por favor, marca la casilla para aceptar el <strong>consentimiento informado</strong> antes de confirmar tu sesión.</p>
+        <button onclick="cerrarAlertaConsentimiento()" class="btn-brutal btn-secondary" style="width: 100%; font-size: 18px; padding: 15px;">
+            Entendido
+        </button>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://npmcdn.com/flatpickr/dist/l10n/es.js"></script>
+
+<script>
+    // =========================================================================
+    // 1. FUNCIONES GLOBALES 
+    // =========================================================================
+
+    function mostrarCalendario() {
+        const wizard = document.getElementById('booking-wizard');
+        wizard.style.display = 'block'; 
+        wizard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function convertirHoraA24(hora12) {
+        let [time, modifier] = hora12.split(' ');
+        let [hours, minutes] = time.split(':');
+        if (hours === '12') hours = '00';
+        if (modifier === 'PM') hours = parseInt(hours, 10) + 12;
+        return `${hours.toString().padStart(2, '0')}:${minutes}`;
+    }
+
+    function cargarHorariosRapidos() {
+        document.getElementById('btn-confirmar-rapido').style.display = 'none';
+        document.getElementById('horarios-rapidos-container').style.display = 'block';
+        
+        const diasData = JSON.parse(document.getElementById('dias-data').textContent);
+        const cajaHoras = document.getElementById('quick-slots');
+        const fechaBusqueda = window.fechaIdealTarget;
+
+        if(diasData[fechaBusqueda] && diasData[fechaBusqueda].length > 0) {
+            let botonesHtml = '';
+            diasData[fechaBusqueda].forEach(horaStr => {
+                let hora24 = convertirHoraA24(horaStr);
+                
+                botonesHtml += `<button type="button" class="time-slot-btn" data-fecha="${fechaBusqueda}" data-hora="${hora24}" style="padding: 10px 15px !important; font-size: 14px;" onclick="seleccionarHoraRapida(this, '${fechaBusqueda}', '${horaStr}')">${horaStr}</button>`;
+            });
+            cajaHoras.innerHTML = botonesHtml;
+        } else {
+            cajaHoras.innerHTML = '<p style="color: var(--color-orange-rust); font-size: 14px;">El terapeuta no tiene disponibilidad ese día. Por favor, usa la opción de abajo para ver el calendario completo.</p>';
+        }
+    }
+
+    function seleccionarHoraRapida(btnElement, fecha, horaAmPm) {
+        window.fechaSeleccionada = fecha;
+        window.horaSeleccionada = btnElement.getAttribute('data-hora');
+
+        document.querySelectorAll('.time-slot-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.date-chip').forEach(c => c.classList.remove('active'));
+        
+        btnElement.classList.add('active');
+
+        let hiddenChip = document.querySelector(`.date-chip[data-fecha="${fecha}"]`);
+        if(hiddenChip) hiddenChip.classList.add('active');
+
+        document.getElementById('booking-wizard').style.display = 'block';
+        document.getElementById('step-1-schedule').style.display = 'none';
+        document.getElementById('step-2-payment').style.display = 'block';
+
+        let partes = fecha.split('-');
+        let fechaObj = new Date(partes[0], partes[1]-1, partes[2]);
+        const opciones = { weekday: 'long', month: 'long', day: 'numeric' };
+        let fechaBonita = fechaObj.toLocaleDateString('es-ES', opciones);
+
+        document.getElementById('selected-time-text').innerHTML = `Has seleccionado el <strong>${fechaBonita}</strong> a las <strong>${horaAmPm}</strong>.`;
+        document.getElementById('step-2-payment').scrollIntoView({behavior: 'smooth', block: 'start'});
+    }
+
+    // Modal de Reto
+    function celebrarReto(checkbox) {
+        if (checkbox.checked) {
+            document.getElementById('alerta-reto').style.display = 'flex';
+        }
+    }
+    function cerrarAlertaReto() {
+        document.getElementById('alerta-reto').style.display = 'none';
+        mostrarCalendario(); 
+    }
+
+    // Modal de Advertencia (Consentimiento)
+    function cerrarAlertaConsentimiento() {
+        document.getElementById('alerta-consentimiento').style.display = 'none';
+    }
+
+
+    // =========================================================================
+    // 2. LÓGICA QUE SE EJECUTA AL CARGAR LA PÁGINA
+    // =========================================================================
+
+    document.addEventListener("DOMContentLoaded", function () {
+        
+        window.fechaSeleccionada = "";
+        window.horaSeleccionada = "";
+        window.animoSeleccionado = "No especificó";
+
+        const msj = document.getElementById("mensaje-proxima-semana");
+        if (msj) {
+            let nextWeek = new Date();
+            nextWeek.setDate(nextWeek.getDate() + 7);
+
+            const opciones = { weekday: 'long', month: 'long', day: 'numeric' };
+            const fechaFormateada = nextWeek.toLocaleDateString('es-ES', opciones);
+
+            msj.innerHTML = `<i class="fas fa-calendar-check" style="margin-right: 8px;"></i> Tu próxima sesión ideal es el <strong>${fechaFormateada}</strong>`;
+            
+            let yyyy = nextWeek.getFullYear();
+            let mm = String(nextWeek.getMonth() + 1).padStart(2, '0');
+            let dd = String(nextWeek.getDate()).padStart(2, '0');
+            window.fechaIdealTarget = `${yyyy}-${mm}-${dd}`;
+        }
+
+        const moodBtnsHuge = document.querySelectorAll('.mood-btn-huge');
+        moodBtnsHuge.forEach(btn => {
+            btn.addEventListener('click', function() {
+                moodBtnsHuge.forEach(b => b.classList.remove('selected'));
+                this.classList.add('selected');
+                window.animoSeleccionado = this.getAttribute('data-animo'); 
+            });
+        });
+
+        const btnBackSchedule = document.getElementById('btn-back-schedule');
+        if (btnBackSchedule) {
+            btnBackSchedule.addEventListener('click', () => {
+                document.getElementById('step-2-payment').style.display = 'none';
+                document.getElementById('step-1-schedule').style.display = 'block';
+            });
+        }
+
+        const dateChips = document.querySelectorAll('.date-chip');
+        const slotContainers = document.querySelectorAll('.slots-container');
+        
+        dateChips.forEach(chip => {
+            chip.addEventListener('click', function() {
+                dateChips.forEach(c => c.classList.remove('active'));
+                slotContainers.forEach(container => container.style.display = 'none');
+                
+                this.classList.add('active');
+                const targetId = this.getAttribute('data-target');
+                const containerReal = document.getElementById(targetId);
+                if(containerReal) containerReal.style.display = 'grid';
+            });
+        });
+
+        const timeSlotBtnsOriginales = document.querySelectorAll('#step-1-schedule .time-slot-btn');
+        timeSlotBtnsOriginales.forEach(btn => {
+            btn.addEventListener('click', function() {
+                timeSlotBtnsOriginales.forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+
+                const horaText = this.innerText;
+                window.horaSeleccionada = this.getAttribute('data-hora'); 
+                window.fechaSeleccionada = this.getAttribute('data-fecha'); 
+                
+                let partes = window.fechaSeleccionada.split('-');
+                let fechaObj = new Date(partes[0], partes[1]-1, partes[2]);
+                const opciones = { weekday: 'long', month: 'long', day: 'numeric' };
+                let fechaBonita = fechaObj.toLocaleDateString('es-ES', opciones);
+
+                document.getElementById('selected-time-text').innerHTML = `Has seleccionado el <strong>${fechaBonita}</strong> a las <strong>${horaText}</strong>`;
+
+                document.getElementById('step-1-schedule').style.display = 'none';
+                document.getElementById('step-2-payment').style.display = 'block';
+            });
+        });
+
+        // --- Botón de Pagar y Guardar la Cita ---
+        const btnSimulatePay = document.getElementById('btn-simulate-pay');
+        if (btnSimulatePay) {
+            btnSimulatePay.addEventListener('click', function() {
+                
+                // 🔥 VALIDACIÓN CON ALERTA BONITA 🔥
+                const checkConsentimiento = document.getElementById('check-consentimiento');
+                if (checkConsentimiento && !checkConsentimiento.checked) {
+                    document.getElementById('alerta-consentimiento').style.display = 'flex';
+                    return; 
+                }
+
+                if (!window.fechaSeleccionada || !window.horaSeleccionada) {
+                    alert("Por favor, selecciona una fecha y una hora válida.");
+                    return;
+                }
+
+                document.getElementById('step-2-payment').style.display = 'none';
+                document.getElementById('step-3-loading').style.display = 'block';
+
+                let formData = new URLSearchParams();
+                formData.append('fecha', window.fechaSeleccionada);
+                formData.append('hora', window.horaSeleccionada);
+                formData.append('animo', window.animoSeleccionado);
+                
+                const csrfInput = document.querySelector('[name=csrfmiddlewaretoken]');
+                if(csrfInput) {
+                    formData.append('csrfmiddlewaretoken', csrfInput.value);
+                }
+
+                fetch("/guardar-cita/", {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' },
+                    body: formData.toString()
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if(data.status === 'success') {
+                        setTimeout(() => {
+                            document.getElementById('booking-wizard').style.display = 'none';
+                            document.getElementById('confirmed-appointment').style.display = 'block';
+                        }, 1500);
+                    } else {
+                        alert('Error del servidor: ' + data.message);
+                        location.reload(); 
+                    }
+                })
+                .catch(error => {
+                    alert('Error de conexión. Intenta de nuevo.');
+                    location.reload();
+                });
+            });
+        }
+    });
+</script>
+{% endblock %}

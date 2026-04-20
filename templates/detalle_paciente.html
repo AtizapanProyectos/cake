@@ -1,0 +1,204 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Expediente - {{ paciente.perfil.nombre }} | HOPE{% endblock %}
+
+{% block content %}
+<style>
+    .profile-header {
+        background: linear-gradient(135deg, var(--color-brand-teal), #1a5252);
+        padding: 80px 0 50px 0;
+        color: white;
+        text-align: center;
+        border-bottom-left-radius: 40px;
+        border-bottom-right-radius: 40px;
+        margin-bottom: 50px;
+    }
+
+    .timeline {
+        position: relative;
+        max-width: 800px;
+        margin: 0 auto;
+        padding-left: 40px;
+    }
+
+    .timeline::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 15px;
+        height: 100%;
+        width: 4px;
+        background: #e2e8f0;
+        border-radius: 4px;
+    }
+
+    .timeline-card {
+        background: var(--bg-white);
+        border-radius: 20px;
+        padding: 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+        position: relative;
+        border: 1px solid #f1f5f9;
+        transition: transform 0.3s ease;
+    }
+
+    .timeline-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(41, 126, 126, 0.1);
+    }
+
+    .timeline-card::before {
+        content: '';
+        position: absolute;
+        top: 30px;
+        left: -34px;
+        width: 16px;
+        height: 16px;
+        background: var(--color-brand-teal);
+        border: 4px solid white;
+        border-radius: 50%;
+        box-shadow: 0 0 0 4px rgba(41, 126, 126, 0.2);
+    }
+</style>
+
+<div class="profile-header fade-in-up">
+    <div class="container">
+        <a href="{% url 'panel_doctor' %}"
+            style="color: rgba(255,255,255,0.7); text-decoration: none; display: inline-flex; align-items: center; gap: 8px; margin-bottom: 20px; font-weight: 500;">
+            <i class="fas fa-arrow-left"></i> Volver al Directorio
+        </a>
+
+        <div
+            style="width: 100px; height: 100px; background: rgba(255,255,255,0.1); color: white; font-size: 40px; display: flex; align-items: center; justify-content: center; border-radius: 50%; margin: 0 auto 20px auto; border: 2px solid rgba(255,255,255,0.3); font-family: var(--font-headings);">
+            {{ paciente.perfil.nombre|first|upper }}
+        </div>
+
+        <h1 style="font-family: var(--font-headings); font-size: 42px; margin-bottom: 10px;">
+            {{ paciente.perfil.nombre|title }}
+        </h1>
+
+        <p style="font-size: 18px; opacity: 0.9;">{{ paciente.email }}</p>
+
+        <div
+            style="display: inline-block; background: rgba(0,0,0,0.2); padding: 10px 20px; border-radius: 20px; margin-top: 20px; font-size: 14px; font-weight: 600;">
+            <i class="fas fa-calendar-check"></i> {{ total_sesiones }} Sesiones Totales
+        </div>
+    </div>
+</div>
+
+<div class="container" style="padding-bottom: 100px;">
+
+    <div
+        style="max-width: 800px; margin: 0 auto 50px auto; display: flex; justify-content: space-between; align-items: center;">
+        <h2 class="chic-title" style="font-size: 32px;"><i class="fas fa-history"
+                style="color: var(--color-brand-teal);"></i> Historial Clínico</h2>
+    </div>
+
+    <div
+        style="max-width: 800px; margin: 0 auto 40px auto; background: linear-gradient(135deg, rgba(41, 126, 126, 0.1), rgba(161, 51, 107, 0.05)); border: 2px dashed var(--color-brand-teal); padding: 25px; border-radius: 20px; display: flex; align-items: center; gap: 20px;">
+        <div
+            style="background: var(--bg-white); width: 60px; height: 60px; border-radius: 15px; display: flex; justify-content: center; align-items: center; font-size: 24px; color: var(--color-brand-teal); box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+            <i class="fas fa-robot"></i>
+        </div>
+        <div>
+            <h3 class="chic-title" style="font-size: 18px; color: var(--color-brand-teal); margin-bottom: 5px;">Módulo
+                de IA</h3>
+            <p style="color: var(--text-main); font-size: 14px; margin: 0;">¡1 hora después de que termine la sesión
+                podrás encontrar tus notas y compromisos aquí!</p>
+        </div>
+    </div>
+
+    <div class="timeline">
+
+        <div class="timeline-card fade-in-up"
+            style="border-left: 5px solid var(--color-brand-teal); background: #fdfefe;">
+            <div
+                style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+                <div>
+                    <span class="step-tag"
+                        style="background: linear-gradient(135deg, var(--color-brand-teal), #1a5252); color: white; margin-bottom: 10px; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: bold; display: inline-block;">
+                        <i class="fas fa-magic"></i> Análisis de IA (Ejemplo)
+                    </span>
+                    <h3 class="chic-title" style="font-size: 24px; color: var(--text-main); margin-top: 5px;">Resumen
+                        Automático de Sesión</h3>
+                    <p style="color: var(--text-muted); font-size: 14px; margin-top: 5px;"><i class="fas fa-clock"></i>
+                        Generado al finalizar la sesión</p>
+                </div>
+            </div>
+
+            <div
+                style="background: white; padding: 20px; border-radius: 16px; border: 1px solid #e2e8f0; margin-bottom: 20px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);">
+                <h4 style="color: var(--color-brand-teal); margin-bottom: 10px; font-size: 16px;"><i
+                        class="fas fa-brain"></i> Análisis del estado de ánimo:</h4>
+                <p style="color: var(--text-main); font-size: 15px; line-height: 1.6; margin: 0;">
+                    El paciente mostró signos de mejora en la gestión de la ansiedad. Se identificaron detonantes
+                    relacionados con el estrés laboral. La IA detectó un tono de voz más relajado y vocabulario positivo
+                    hacia el final de la sesión en comparación con los primeros 15 minutos.
+                </p>
+            </div>
+
+            <div
+                style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 15px 20px; border-radius: 12px; color: #166534; display: flex; gap: 15px; align-items: flex-start;">
+                <i class="fas fa-clipboard-check" style="font-size: 20px; margin-top: 3px;"></i>
+                <div>
+                    <strong
+                        style="display: block; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px;">Compromisos
+                        Sugeridos</strong>
+                    <ul style="margin: 0; padding-left: 20px; font-size: 15px; line-height: 1.5;">
+                        <li>Practicar el ejercicio de respiración 4-7-8 antes de dormir.</li>
+                        <li>Anotar en el diario tres cosas positivas al final del día laboral.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        {% if historiales %}
+        {% for historial in historiales %}
+        <div class="timeline-card fade-in-up" style="animation-delay: 0.{{ forloop.counter }}s;">
+            <div
+                style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+                <div>
+                    <span class="step-tag"
+                        style="background: var(--color-brand-teal); color: white; margin-bottom: 10px;"><i
+                            class="fas fa-calendar-day"></i> {{ historial.fecha_registro|date:"d M Y" }}</span>
+                    <h3 class="chic-title" style="font-size: 24px; color: var(--text-main);">{{
+                        historial.diagnostico_temporal|default:"Sesión General" }}</h3>
+                </div>
+            </div>
+
+            <div
+                style="background: var(--bg-light); padding: 20px; border-radius: 16px; border: 1px solid #e2e8f0; margin-bottom: 20px;">
+                <p style="color: var(--text-main); font-size: 16px; line-height: 1.7; margin: 0;"><i
+                        class="fas fa-quote-left" style="color: #cbd5e1; margin-right: 10px;"></i>{{
+                    historial.notas_sesion }}</p>
+            </div>
+
+            {% if historial.tareas_asignadas %}
+            <div
+                style="background: #fffbeb; border: 1px solid #fde68a; padding: 15px 20px; border-radius: 12px; color: #b45309; display: flex; gap: 15px; align-items: center;">
+                <i class="fas fa-thumbtack" style="font-size: 20px;"></i>
+                <div>
+                    <strong
+                        style="display: block; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px;">Tarea
+                        Asignada</strong>
+                    <span style="font-size: 15px;">{{ historial.tareas_asignadas }}</span>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+        {% else %}
+        <div class="timeline-card fade-in-up"
+            style="background: transparent; border: 2px dashed #cbd5e1; box-shadow: none; text-align: center;">
+            <i class="fas fa-folder-open" style="font-size: 40px; color: #cbd5e1; margin-bottom: 15px;"></i>
+            <h3 style="color: var(--text-main); font-size: 20px; margin-bottom: 5px;">Aún no hay notas reales</h3>
+            <p style="color: var(--text-muted); font-size: 15px; margin: 0;">Cuando agregues el expediente de la primera
+                sesión, aparecerá aquí abajo del ejemplo de IA.</p>
+        </div>
+        {% endif %}
+
+    </div>
+
+</div>
+{% endblock %}

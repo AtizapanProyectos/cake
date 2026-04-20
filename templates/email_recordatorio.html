@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Recordatorio de Cita - HOPE</title>
+</head>
+<body style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #F9FAFB; margin: 0; padding: 0;">
+
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="padding: 40px 20px;">
+        <tr>
+            <td align="center">
+                <table width="100%" max-width="600" cellpadding="0" cellspacing="0" border="0" style="background-color: #FFFFFF; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.05); max-width: 600px; width: 100%; border-top: 6px solid #B5992D;">
+                    
+                    <tr>
+                        <td align="center" style="background-color: #ffffff; padding: 40px 20px 10px 20px;">
+                             <img src="https://i.ibb.co/tqp8XW0/logo-hope-principal.png" alt="HOPE" style="height: 100px; width: auto; display: block; margin: 0 auto;">
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td align="center" style="padding: 10px 40px 50px 40px;">
+                            <h2 style="color: #000000; font-size: 26px; font-weight: 700;">¡Gran trabajo hoy, {{ paciente_nombre }}!</h2>
+                            
+                            <p style="color: #4B5563; font-size: 16px; line-height: 1.6; margin-bottom: 30px;">
+                                Tu psicólogo/a <strong>{{ psicologo_nombre }}</strong> ha finalizado las notas de tu sesión de hoy. Queremos felicitarte por el esfuerzo y el compromiso que estás poniendo en tu bienestar.
+                            </p>
+                            
+                            <div style="background-color: #FEF3C7; border: 1px solid #FDE68A; padding: 20px; border-radius: 12px; margin-bottom: 40px;">
+                                <p style="color: #B45309; font-size: 15px; margin: 0; font-weight: 600;">
+                                    📌 Recuerda: La constancia es clave. Entra a tu panel para confirmar tu sesión de la próxima semana y continuar con tu progreso.
+                                </p>
+                            </div>
+
+                            <a href="{{ link_plataforma }}" style="display: inline-block; background-color: #297E7E; color: #FFFFFF; text-decoration: none; font-size: 16px; font-weight: bold; padding: 16px 40px; border-radius: 30px; box-shadow: 0 6px 15px rgba(41, 126, 126, 0.3);">
+                                Agendar Próxima Sesión
+                            </a>
+                        </td>
+                    </tr>
+
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
